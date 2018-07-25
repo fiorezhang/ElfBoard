@@ -40,6 +40,70 @@ class Pattern():
                             [0,0,1,0,0],
                             [0,0,1,0,0]]
 
+        self.__pt_5_t = np.zeros((4, 5, 5), np.int) #五T
+        self.__pt_5_t[0] = [[0,0,0,0,0],
+                            [0,0,1,0,0],
+                            [1,1,1,0,0],
+                            [0,0,1,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_t[1] = [[0,0,1,0,0],
+                            [0,0,1,0,0],
+                            [0,1,1,1,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_t[2] = [[0,0,0,0,0],
+                            [0,0,1,0,0],
+                            [0,0,1,1,1],
+                            [0,0,1,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_t[3] = [[0,0,0,0,0],
+                            [0,0,0,0,0],
+                            [0,1,1,1,0],
+                            [0,0,1,0,0],
+                            [0,0,1,0,0]]
+
+        self.__pt_5_p = np.zeros((8, 5, 5), np.int) #五P
+        self.__pt_5_p[0] = [[0,0,0,0,0],
+                            [0,1,1,0,0],
+                            [1,1,1,0,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_p[1] = [[0,0,0,0,0],
+                            [1,1,1,0,0],
+                            [0,1,1,0,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_p[2] = [[0,1,0,0,0],
+                            [0,1,1,0,0],
+                            [0,1,1,0,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_p[3] = [[0,0,1,0,0],
+                            [0,1,1,0,0],
+                            [0,1,1,0,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_p[4] = [[0,0,0,0,0],
+                            [0,1,1,1,0],
+                            [0,1,1,0,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_p[5] = [[0,0,0,0,0],
+                            [0,1,1,0,0],
+                            [0,1,1,1,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_p[6] = [[0,0,0,0,0],
+                            [0,1,1,0,0],
+                            [0,1,1,0,0],
+                            [0,0,1,0,0],
+                            [0,0,0,0,0]]
+        self.__pt_5_p[7] = [[0,0,0,0,0],
+                            [0,1,1,0,0],
+                            [0,1,1,0,0],
+                            [0,1,0,0,0],
+                            [0,0,0,0,0]]
+                            
         self.__pt_4_l = np.zeros((2, 5, 5), np.int) #四连
         self.__pt_4_l[0] = [[0,0,0,0,0],
                             [0,0,0,0,0],
@@ -71,13 +135,28 @@ class Pattern():
                             [0,0,1,0,0],
                             [0,0,0,0,0]]
 
-        self.__pt_all = np.concatenate((self.__pt_5_l, self.__pt_5_b), axis=0)
-        self.__pt_all = np.concatenate((self.__pt_all, self.__pt_4_l), axis=0)
-        self.__pt_all = np.concatenate((self.__pt_all, self.__pt_4_s), axis=0)
-        self.__pt_all = np.concatenate((self.__pt_all, self.__pt_3_l), axis=0)
+        self.__pt_5cs = np.concatenate((self.__pt_5_l, self.__pt_5_b), axis=0)
+        self.__pt_5cs = np.concatenate((self.__pt_5cs, self.__pt_5_t), axis=0)
+        self.__pt_5cs = np.concatenate((self.__pt_5cs, self.__pt_5_p), axis=0)
+        
+        self.__pt_4cs = np.concatenate((self.__pt_4_l, self.__pt_4_s), axis=0)
+        
+        self.__pt_3cs = self.__pt_3_l
+        
+        self.__pt_all = np.concatenate((self.__pt_5cs, self.__pt_4cs), axis=0)
+        self.__pt_all = np.concatenate((self.__pt_all, self.__pt_3cs), axis=0)
     
     def get_all(self):
         return self.__pt_all
+        
+    def get_5cs(self):
+        return self.__pt_5cs
+        
+    def get_4cs(self):
+        return self.__pt_4cs
+        
+    def get_3cs(self):
+        return self.__pt_3cs
 
     def get_5_l(self):
         return self.__pt_5_l
