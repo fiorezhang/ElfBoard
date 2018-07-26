@@ -21,14 +21,14 @@ if __name__ == '__main__':
 
     round = 0
     while True:
-        print("ROUND %d" % round)
-        bd.paint()
+        print("\n--------------------\nROUND %d" % round)
         while bd.score(bd.boom())[1] > 0:
-            bd.paint() 
+            #bd.paint() 
             bd.down(3)
-            bd.paint()
+            #bd.paint()
             bd.fill()
-            bd.paint()
+            #bd.paint()
+        bd.paint()
         cnt, cells = bd.propose()
         if cnt == 0:
             print("DEAD")
@@ -38,4 +38,5 @@ if __name__ == '__main__':
         #input("")
         time.sleep(1)
         bd.swap((cell_a[0], cell_a[1]), (cell_b[0], cell_b[1]))   
+        bd.paint()
         round += 1

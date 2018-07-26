@@ -188,7 +188,7 @@ class Board():
         #print(count, res)
         np.random.shuffle(res)
         res.sort(key=lambda x:x[0], reverse=True)
-        print(count, res)
+        #print(count, res)
         return count, res
 
     def reinit(self):
