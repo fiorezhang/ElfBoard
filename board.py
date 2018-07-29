@@ -3,7 +3,7 @@
 import numpy as np
 
 from pattern import Pattern
-from setting import ELEMENT, COLOR, SCORE
+from setting import ELEMENT, COLOR, SCORE, DIRECT
 
 
 class Board():
@@ -112,16 +112,16 @@ class Board():
         col = self.__col
 
         # 先统一把方向转成向左，因为左方向最方便计算
-        if direction == 0:
+        if direction == DIRECT["LEFT"]:
             pass
-        if direction == 1:
+        elif direction == DIRECT["UP"]:
             self.__bd = np.transpose(self.__bd)
             row, col = col, row
-        if direction == 2:
+        elif direction == DIRECT["RIGHT"]:
             self.__bd = np.transpose(self.__bd)
             self.__bd = self.__bd[::-1]
             self.__bd = np.transpose(self.__bd)
-        if direction == 3:
+        elif direction == DIRECT["DOWN"]:
             self.__bd = self.__bd[::-1]
             self.__bd = np.transpose(self.__bd)
             row, col = col, row
@@ -136,21 +136,17 @@ class Board():
                         break
         
         # 再转回去              
-        if direction == 0:
+        if direction == DIRECT["LEFT"]:
             pass      
-        if direction == 1:
+        if direction == DIRECT["UP"]:
             self.__bd = np.transpose(self.__bd)
-        if direction == 2:
-            self.__bd = np.transpose(self.__bd)
-            self.__bd = self.__bd[::-1]
-            self.__bd = np.transpose(self.__bd)
-        if direction == 3:
+        if direction == DIRECT["RIGHT"]:
             self.__bd = np.transpose(self.__bd)
             self.__bd = self.__bd[::-1]
-
-    '''
-    TODO
-    '''
+            self.__bd = np.transpose(self.__bd)
+        if direction == DIRECT["DOWN"]:
+            self.__bd = np.transpose(self.__bd)
+            self.__bd = self.__bd[::-1]
 
     def fill(self):
         '''用随机颜色填充0的格子
@@ -160,7 +156,12 @@ class Board():
         for i in range(row):
             for j in range(col):
                 if self.__bd[i][j] == 0:
-                    self.__bd[i][j] = np.random.randint(low=1, high=6)
+                    self.__bd[i][j] = np.random.randint(low=1, high=6) #1~5五种颜色
+
+    '''
+    TODO
+    '''
+
 
     def swap(self, cell_a, cell_b):
         '''交换相邻两格，并且判断是否能触发至少一个消除
@@ -236,7 +237,7 @@ class Board():
 if __name__ == '__main__':
     print("="*10, "Test Board")
     pt = Pattern()
-    bd = Board(5, 5) #最好用不同的数作为两个维度，更好的测试出问题（例如两个维度颠倒）
+    bd = Board(5, 6) #最好用不同的数作为两个维度，更好的测试出问题（例如两个维度颠倒）
     
     #Test init/paint
     if True:
@@ -281,6 +282,7 @@ if __name__ == '__main__':
         bd.paint()  #消除后的矩阵
         print(res)  #消除的次数（3*5矩阵表示结果）
         bd.load()
+        #bd.paint()
 
     #Test score
     if True:
@@ -293,10 +295,27 @@ if __name__ == '__main__':
             print("    %s: %d" % (COLOR[color], bd.score(cnt_boom, color)))
         print("    ALL: %d" % bd.score(cnt_boom))
         bd.load()
+        #bd.paint()
         
     #Test down
     if True:
-        print("-"*10, "Test score")
+        print("-"*10, "Test down")
+        bd.save()
+        bd.paint()
+        while bd.score(bd.boom()) == 0:
+            bd.reinit(clean_backup = False) #如果碰到没有可消除的情形，临时生成新数据，并且不破坏原始备份
+            bd.paint()
+        bd.paint()
+        for direct in DIRECT: 
+            print(direct)
+            bd.down(DIRECT[direct])
+            bd.paint()
+        bd.load()
+        #bd.paint()
+
+    #Test fill
+    if True:
+        print("-"*10, "Test fill")
         bd.save()
         bd.paint()
         while bd.score(bd.boom()) == 0:
@@ -305,9 +324,12 @@ if __name__ == '__main__':
         bd.paint()
         bd.down()
         bd.paint()
-        bd.load()
+        bd.fill()
         bd.paint()
-        
+        bd.load()
+        #bd.paint()
+
+
 '''        
     bd.paint()
     res = bd.boom()
