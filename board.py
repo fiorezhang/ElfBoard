@@ -1,12 +1,24 @@
 #coding: utf-8
 
 import numpy as np
+import datetime
 
 from pattern import Pattern
 from setting import ELEMENT, COLOR, SCORE, DIRECT
 
+def performance(f):
+    '''修饰器，给函数加时间戳统计运行时间，不用时关掉
+    '''
+    def fn(*args, **kw):
+        t1 = datetime.datetime.now()
+        r = f(*args, **kw)
+        t2 = datetime.datetime.now()
+        print('call %s() in %fs' % (f.__name__, (t2 - t1).total_seconds()))
+        return r
+    return fn
 
 class Board():
+    #@performance
     def __init__(self, row=5, col=5):
         '''生成初始矩阵，可能存在满足三消的情况，在别的函数再处理
         假定五种颜色，用1~5来表示，0用来标记待消除的瞬态
@@ -23,6 +35,7 @@ class Board():
         self.__bd_backup = np.zeros((row, col), np.int)
         self.__flag_backup = False
 
+    #@performance
     def reinit(self, clean_backup=True):
         '''重新初始化矩阵，清除备份矩阵
         '''
@@ -33,22 +46,25 @@ class Board():
             self.__bd_backup = np.zeros((row, col), np.int)
             self.__flag_backup = False
 
+    #@performance
     def save(self):
         '''备份矩阵，设置flag
         '''
-        self.__bd_backup = self.__bd
+        self.__bd_backup = self.__bd.copy()
         self.__flag_backup = True
 
+    #@performance
     def load(self):
         '''还原矩阵，仅在备份过之后才能还原，且还原时清除备份flag
         '''
         if self.__flag_backup == True:
-            self.__bd = self.__bd_backup
+            self.__bd = self.__bd_backup.copy()
             self.__flag_backup = False
         else:
             print("LOAD FAILED")
             pass
        
+    #@performance
     def match(self, patterns, color):
         '''查找并标记满足条件的块
         '''
@@ -63,13 +79,13 @@ class Board():
             for i in range(row):
                 for j in range(col):
                     area_scan = bd_ext[i:i+5, j:j+5] #能遍历整个矩阵，每次取出5*5的方阵，与传入的pattern作比较
-                    if (area_scan*pt == color*pt).all(): #5*5的方阵中，与传入的pattern位置相同的格子正好都是满足要求的颜色
+                    if area_scan[2][2] == color and (area_scan*pt == color*pt).all(): #5*5的方阵中，中心格子[2][2]，以及与传入的pattern位置相同的格子正好都是满足要求的颜色
                         area_count += 1
                         bd_ext[i:i+5, j:j+5] = area_scan*(1-pt) #将传入的pattern取反和5*5方阵相乘，保留其它格子不变，pattern部分变成0
             yield area_count
         self.__bd = bd_ext[2:-2, 2:-2]
 
-
+    #@performance
     def boom(self):
         '''遍历所有的pattern，将5格，4格，3格的情况找出来，返回每种格数每种颜色消除的次数
         '''
@@ -91,6 +107,7 @@ class Board():
         #print(cnt_boom)
         return cnt_boom
 
+    #@performance
     def score(self, cnt_boom, clr=0):
         '''基于boom的结果，给出一个按照颜色分类的分数
         '''
@@ -105,6 +122,7 @@ class Board():
                 return sc[j]
         return sum(sc)
 
+    #@performance
     def down(self, direction=0):
         '''往一个方向按照‘重力’填补空缺，0左，1上，2右，3下
         '''
@@ -148,6 +166,7 @@ class Board():
             self.__bd = np.transpose(self.__bd)
             self.__bd = self.__bd[::-1]
 
+    #@performance
     def fill(self):
         '''用随机颜色填充0的格子
         '''
@@ -158,99 +177,73 @@ class Board():
                 if self.__bd[i][j] == 0:
                     self.__bd[i][j] = np.random.randint(low=1, high=6) #1~5五种颜色
 
-    def swap(self, cell_a, cell_b):
+    #@performance
+    def swap(self, a, b):
         '''交换相邻两格
         '''
         row = self.__row
         col = self.__col
         #判断输入数据[a0,a1] [b0,b1]是否valid，是否相邻
-        if cell_a[0] in range(row) and cell_a[1] in range(col) and cell_b[0] in range(row) and cell_b[1] in range(col) and \
-            ((abs(cell_a[0]-cell_b[0]) == 1 and cell_a[1] == cell_b[1]) or (cell_a[0] == cell_b[0] and abs(cell_a[1] - cell_b[1]) == 1)):
+        if a[0] in range(row) and a[1] in range(col) and b[0] in range(row) and b[1] in range(col) and \
+            ( (abs(a[0]-b[0]) == 1 and a[1] == b[1]) or (a[0] == b[0] and abs(a[1] - b[1]) == 1) ):
             #相邻的话，交换两格
-            self.__bd[cell_a[0]][cell_a[1]], self.__bd[cell_b[0]][cell_b[1]] = self.__bd[cell_b[0]][cell_b[1]], self.__bd[cell_a[0]][cell_a[1]]
+            self.__bd[a[0]][a[1]], self.__bd[b[0]][b[1]] = self.__bd[b[0]][b[1]], self.__bd[a[0]][a[1]]
             return True
         else:
             return False
-    '''
-    TODO
-    '''
 
-
-    def temp(self, cell_a, cell_b):
-        '''交换相邻两格，并且判断是否能触发至少一个消除
+    #@performance
+    def hint(self, best=0):
+        '''遍历矩阵，尝试给出符合条件的提示（两个相邻格），同样分数下随机给出提示
         '''
         row = self.__row
         col = self.__col
 
-        try:
-            assert(cell_a[0] in range(row) and cell_a[1] in range(col)) #判断输入数据[a0,a1] [b0,b1]是否valid，是否相邻
-            assert(cell_b[0] in range(row) and cell_b[1] in range(col))
-            assert(abs(cell_a[0]-cell_b[0]) == 1 and cell_a[1] == cell_b[1]) or (cell_a[0] == cell_b[0] and abs(cell_a[1] - cell_b[1]) == 1)
-        except AssertionError:
-            print("invalid parameter")
-            return False
-            
-        ''' 确定当前没有未消除的部分，不放在这里执行，否则多次判断影响效率
-        try:
-            _, score = self.score(self.scan())
-            assert(score == 0)
-        except AssertionError:
-            print("not clean base")
-            return False
-        '''
-
-        '''尝试交换相邻两块，然后看是否能产生新的消除块，如果不能，要还原这两块
-        其实不需要扫描整个矩阵，只需要相邻的部分，考虑到其实也差不多6*6的区域，而总的区域也不会太大，就整体扫描了
-        '''
-        self.__bd[cell_a[0]][cell_a[1]], self.__bd[cell_b[0]][cell_b[1]] = self.__bd[cell_b[0]][cell_b[1]], self.__bd[cell_a[0]][cell_a[1]]
-        try:
-            _, score = self.score(self.scan())
-            assert(score > 0)
-        except AssertionError:
-            self.__bd[cell_a[0]][cell_a[1]], self.__bd[cell_b[0]][cell_b[1]] = self.__bd[cell_b[0]][cell_b[1]], self.__bd[cell_a[0]][cell_a[1]]
-            #print("invalid move, revert")
-            return False
-
-        return True
+        #生成随机队列，每个元素是一个相邻格的对子，包括横纵方向
+        pair_list_h = [((i,j),(i,j+1)) for i in range(row) for j in range(col-1)]
+        pair_list_v = [((i,j),(i+1,j)) for i in range(row-1) for j in range(col)]
+        pair_list = pair_list_h + pair_list_v
+        np.random.shuffle(pair_list)
         
-    def propose(self):
-        '''遍历整个矩阵，计算交换相邻格带来的收益，从而给出建议，如果收益相同则随机给一个
-        如果没有任何可以交换的格子，说明这一局‘死了’，可能需要重新开局或者打乱
-        '''
-        row = self.__row
-        col = self.__col
-
-        count = 0
-        res = []
-        for i in range(row-1):
-            for j in range(col-1):
-                if self.swap([i,j], [i,j+1]):
-                    _, score = self.score(self.scan()) #算出交换后的分数
-                    self.__bd[i][j], self.__bd[i][j+1] = self.__bd[i][j+1], self.__bd[i][j] #先还原
-                    res.append([score, [i,j], [i,j+1]])
-                    count += 1
-                if self.swap([i,j], [i+1,j]):
-                    _, score = self.score(self.scan()) #算出交换后的分数
-                    self.__bd[i][j], self.__bd[i+1][j] = self.__bd[i+1][j], self.__bd[i][j] #先还原
-                    res.append([score, [i,j], [i+1,j]])
-                    count += 1
-        #print(count, res)
-        np.random.shuffle(res)
-        res.sort(key=lambda x:x[0], reverse=True)
-        #print(count, res)
-        return count, res
+        #给出一组解，best为0时，给出从随机数列中找到至少能消除一组的第一个解；best为1时，计算所有满足条件的分数
+        pair_hint = None
+        if best == 0:
+            for pair in pair_list:
+                self.save()
+                self.swap(pair[0], pair[1])
+                score = self.score(self.boom())
+                if score > 0:
+                    pair_hint = pair
+                    #print(score, pair)
+                self.load()
+                if not pair_hint is None:
+                    break
+        else:
+            pair_hint_list = []
+            for pair in pair_list:
+                self.save()
+                self.swap(pair[0], pair[1])
+                score = self.score(self.boom())
+                if score > 0:
+                    pair_hint_list.append([score, pair])
+                    #print(score, pair)
+                self.load()
+            pair_hint_list.sort(key=lambda x:x[0], reverse=True)
+            if len(pair_hint_list) > 0:
+                pair_hint = pair_hint_list[0][1]
+        return pair_hint
 
     def paint(self):
         '''绘制矩阵，初始用打印语句代替
-        TODO: 相邻同色块要不要做标记？
         '''
         print(self.__bd)
+        return self.__bd
 
     
 if __name__ == '__main__':
     print("="*10, "Test Board")
     pt = Pattern()
-    bd = Board(5, 6) #最好用不同的数作为两个维度，更好的测试出问题（例如两个维度颠倒）
+    bd = Board(8, 9) #最好用不同的数作为两个维度，更好的测试出问题（例如两个维度颠倒）
     
     #Test init/paint
     if True:
@@ -347,24 +340,26 @@ if __name__ == '__main__':
         print("-"*10, "Test swap")
         bd.save()
         bd.paint()
-        for cell_a, cell_b in [((1,1),(1,2)), ((3,2),(2,2)),((3,1),(2,2))]:
-            print(bd.swap(cell_a, cell_b), cell_a, cell_b)
+        for a, b in [((1,1),(1,2)), ((3,2),(2,2)),((3,1),(2,2))]:
+            print(bd.swap(a, b), a, b)
             bd.paint()
         bd.load()
         #bd.paint()
 
+    #Test hint
+    if True:
+        print("-"*10, "Test hint")
+        bd.save()
+        bd.paint()
+        while bd.score(bd.boom()) > 0: #自动消除，填充，直到没有可自动消除的块
+            #bd.paint()
+            bd.down()
+            #bd.paint()
+            bd.fill()
+            #bd.paint()
+        bd.paint()
+        print(bd.hint())
+        print(bd.hint(best=1))
+        #bd.load() #hint函数里面已经load过了
+        #bd.paint()
 
-'''        
-    bd.paint()
-    res = bd.boom()
-    #print(bd.score(res))
-    bd.paint()
-    bd.down(3)
-    bd.paint()
-    bd.fill()
-    bd.paint()
-    print(bd.swap((1,1),(2,1)))
-    bd.paint()
-    bd.propose()
-    bd.paint()
-'''
