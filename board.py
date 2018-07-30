@@ -158,12 +158,25 @@ class Board():
                 if self.__bd[i][j] == 0:
                     self.__bd[i][j] = np.random.randint(low=1, high=6) #1~5五种颜色
 
+    def swap(self, cell_a, cell_b):
+        '''交换相邻两格
+        '''
+        row = self.__row
+        col = self.__col
+        #判断输入数据[a0,a1] [b0,b1]是否valid，是否相邻
+        if cell_a[0] in range(row) and cell_a[1] in range(col) and cell_b[0] in range(row) and cell_b[1] in range(col) and \
+            ((abs(cell_a[0]-cell_b[0]) == 1 and cell_a[1] == cell_b[1]) or (cell_a[0] == cell_b[0] and abs(cell_a[1] - cell_b[1]) == 1)):
+            #相邻的话，交换两格
+            self.__bd[cell_a[0]][cell_a[1]], self.__bd[cell_b[0]][cell_b[1]] = self.__bd[cell_b[0]][cell_b[1]], self.__bd[cell_a[0]][cell_a[1]]
+            return True
+        else:
+            return False
     '''
     TODO
     '''
 
 
-    def swap(self, cell_a, cell_b):
+    def temp(self, cell_a, cell_b):
         '''交换相邻两格，并且判断是否能触发至少一个消除
         '''
         row = self.__row
@@ -326,6 +339,17 @@ if __name__ == '__main__':
         bd.paint()
         bd.fill()
         bd.paint()
+        bd.load()
+        #bd.paint()
+
+    #Test swap
+    if True:
+        print("-"*10, "Test swap")
+        bd.save()
+        bd.paint()
+        for cell_a, cell_b in [((1,1),(1,2)), ((3,2),(2,2)),((3,1),(2,2))]:
+            print(bd.swap(cell_a, cell_b), cell_a, cell_b)
+            bd.paint()
         bd.load()
         #bd.paint()
 
