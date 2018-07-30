@@ -5,12 +5,13 @@ import argparse
 import time
 
 from board import Board
-
+from setting import ELEMENT, COLOR, SCORE, DIRECT
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--row", type=int, default=0)
     parser.add_argument("--col", type=int, default=0)
+    parser.add_argument("--hint", type=int, default=1)
     args = parser.parse_args()
     return args
 
@@ -22,16 +23,15 @@ if __name__ == '__main__':
     round = 1
     score = [0, 0, 0, 0, 0]
     while True:
-        #print("? 1 ? ", time.asctime())
         while True:
-            sc, sc_all = bd.score(bd.boom())
-            if sc_all == 0:
+            cnt_boom = bd.boom()
+            if bd.score(cnt_boom) == 0:
                 break
             else:
-                for i in range(5):
-                    score[i] += sc[i]
+                for i, color in enumerate(COLOR):
+                    score[i] += bd.score(cnt_boom, color)
             #bd.paint() 
-            bd.down(3)
+            bd.down(DIRECT["DOWN"])
             #bd.paint()
             bd.fill()
             #bd.paint()
@@ -41,15 +41,14 @@ if __name__ == '__main__':
         print(score)
         #print("? 2 ? ", time.asctime())
         print("\n--------------------\nROUND %d" % round)
-        cnt, cells = bd.propose()
-        if cnt == 0:
+        pair = bd.hint(args.hint)
+        if pair is None:
             print("DEAD")
-            #bd.reinit()
-            break
-        _, cell_a, cell_b = cells[0] #这里的分数不准确，因为重复计算了
+            bd.reinit()
+            bd.paint()
         #input("")
-        #time.sleep(1)
-        bd.swap((cell_a[0], cell_a[1]), (cell_b[0], cell_b[1]))   
+        time.sleep(1)
+        bd.swap(pair[0], pair[1])   
         print("\n-- MOVE --")
         bd.paint()
         round += 1

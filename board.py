@@ -193,7 +193,7 @@ class Board():
             return False
 
     #@performance
-    def hint(self, best=0):
+    def hint(self, best=1):
         '''遍历矩阵，尝试给出符合条件的提示（两个相邻格），同样分数下随机给出提示
         '''
         row = self.__row
@@ -358,8 +358,8 @@ if __name__ == '__main__':
             bd.fill()
             #bd.paint()
         bd.paint()
-        print(bd.hint())
-        print(bd.hint(best=1))
+        print(bd.hint(0))
+        print(bd.hint(1))
         #bd.load() #hint函数里面已经load过了
         #bd.paint()
 
