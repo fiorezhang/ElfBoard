@@ -156,16 +156,57 @@ class Board():
         # 再转回去              
         if direction == DIRECT["LEFT"]:
             pass      
-        if direction == DIRECT["UP"]:
+        elif direction == DIRECT["UP"]:
             self.__bd = np.transpose(self.__bd)
-        if direction == DIRECT["RIGHT"]:
+        elif direction == DIRECT["RIGHT"]:
             self.__bd = np.transpose(self.__bd)
             self.__bd = self.__bd[::-1]
             self.__bd = np.transpose(self.__bd)
-        if direction == DIRECT["DOWN"]:
+        elif direction == DIRECT["DOWN"]:
             self.__bd = np.transpose(self.__bd)
             self.__bd = self.__bd[::-1]
 
+    #@performance
+    def down_step(self, direction=0):
+        '''往一个方向按照‘重力’填补空缺，0左，1上，2右，3下
+        生成器，每次移动一行/列
+        '''
+        row = self.__row
+        col = self.__col
+        
+        if direction == DIRECT["LEFT"]:   
+            for j in range(col-1):
+                for i in range(row):
+                    if self.__bd[i][col-2-j] == 0:
+                        self.__bd[i][col-2-j:-1] = self.__bd[i][col-1-j:]
+                        self.__bd[i][-1] = 0
+                yield
+        elif direction == DIRECT["UP"]:   
+            for i in range(row-1):
+                self.__bd = np.transpose(self.__bd)
+                for j in range(col):
+                    if self.__bd[j][row-2-i] == 0:
+                        self.__bd[j][row-2-i:-1] = self.__bd[j][row-1-i:]
+                        self.__bd[j][-1] = 0
+                self.__bd = np.transpose(self.__bd)
+                yield
+        elif direction == DIRECT["RIGHT"]:   
+            for j in range(col-1):
+                for i in range(row):
+                    if self.__bd[i][j+1] == 0:
+                        self.__bd[i][1:j+2] = self.__bd[i][:j+1]
+                        self.__bd[i][0] = 0
+                yield
+        elif direction == DIRECT["DOWN"]:   
+            for i in range(row-1):
+                self.__bd = np.transpose(self.__bd)
+                for j in range(col):
+                    if self.__bd[j][i+1] == 0:
+                        self.__bd[j][1:i+2] = self.__bd[j][:i+1]
+                        self.__bd[j][0] = 0
+                self.__bd = np.transpose(self.__bd)
+                yield                
+        
     #@performance
     def fill(self):
         '''用随机颜色填充0的格子
@@ -176,6 +217,39 @@ class Board():
             for j in range(col):
                 if self.__bd[i][j] == 0:
                     self.__bd[i][j] = np.random.randint(low=1, high=6) #1~5五种颜色
+                    
+    #@performance
+    def fill_step(self, direction=0):
+        '''用随机颜色填充0的格子
+        生成器，每次填充一行/列
+        '''
+        row = self.__row
+        col = self.__col
+        
+        if direction == DIRECT["LEFT"]:   
+            for j in range(col):
+                for i in range(row):
+                    if self.__bd[i][j] == 0:
+                        self.__bd[i][j] = np.random.randint(low=1, high=6) #1~5五种颜色 
+                yield                   
+        elif direction == DIRECT["UP"]:   
+            for i in range(row):
+                for j in range(col):
+                    if self.__bd[i][j] == 0:
+                        self.__bd[i][j] = np.random.randint(low=1, high=6) #1~5五种颜色 
+                yield                   
+        elif direction == DIRECT["RIGHT"]:
+            for j in range(col):
+                for i in range(row):
+                    if self.__bd[i][col-1-j] == 0:
+                        self.__bd[i][col-1-j] = np.random.randint(low=1, high=6) #1~5五种颜色 
+                yield                   
+        elif direction == DIRECT["DOWN"]:
+            for i in range(row):
+                for j in range(col):
+                    if self.__bd[row-1-i][j] == 0:
+                        self.__bd[row-1-i][j] = np.random.randint(low=1, high=6) #1~5五种颜色 
+                yield                   
 
     #@performance
     def swap(self, a, b):
@@ -243,21 +317,21 @@ class Board():
 if __name__ == '__main__':
     print("="*10, "Test Board")
     pt = Pattern()
-    bd = Board(8, 9) #最好用不同的数作为两个维度，更好的测试出问题（例如两个维度颠倒）
+    bd = Board(5, 6) #最好用不同的数作为两个维度，更好的测试出问题（例如两个维度颠倒）
     
     #Test init/paint
-    if True:
+    if False:
         print("-"*10, "Test init")
         bd.paint()
         
     #Test reinit
-    if True:
+    if False:
         print("-"*10, "Test reinit")
         bd.reinit()
         bd.paint()
         
     #Test save/load
-    if True:
+    if False:
         print("-"*10, "Test save/load")
         bd.paint()
         bd.save()
@@ -267,20 +341,19 @@ if __name__ == '__main__':
         bd.paint()
         
     #Test match patterns
-    if True:
+    if False:
         print("-"*10, "Test match")
-        bd.save()
-        bd.paint()
         for color in COLOR:
             print("    Color: %s" % COLOR[color])
+            bd.save()
+            bd.paint()
             for cnt in bd.match(pt.get_by_name("3"), color):
                 print("    Matched: %d" % cnt)  #每种pattern找到了几个（看增量，叠加在之前的上）
-        bd.paint()  #退出迭代器后，应该将标记0的变化体现到原始矩阵上
-        bd.load()
-        #bd.paint()  #应该还原了
+            bd.paint()  #退出迭代器后，应该将标记0的变化体现到原始矩阵上
+            bd.load()
 
     #Test boom
-    if True:
+    if False:
         print("-"*10, "Test boom")
         bd.save()
         bd.paint()
@@ -291,7 +364,7 @@ if __name__ == '__main__':
         #bd.paint()
 
     #Test score
-    if True:
+    if False:
         print("-"*10, "Test score")
         bd.save()
         bd.paint()
@@ -304,23 +377,37 @@ if __name__ == '__main__':
         #bd.paint()
         
     #Test down
-    if True:
+    if False:
         print("-"*10, "Test down")
-        bd.save()
-        bd.paint()
         while bd.score(bd.boom()) == 0:
             bd.reinit(clean_backup = False) #如果碰到没有可消除的情形，临时生成新数据，并且不破坏原始备份
             bd.paint()
         bd.paint()
         for direct in DIRECT: 
             print(direct)
+            bd.save()
+            bd.paint()
             bd.down(DIRECT[direct])
             bd.paint()
-        bd.load()
-        #bd.paint()
+            bd.load()
 
-    #Test fill
+    #Test down_step
     if True:
+        print("-"*10, "Test down_step")
+        while bd.score(bd.boom()) == 0:
+            bd.reinit(clean_backup = False) #如果碰到没有可消除的情形，临时生成新数据，并且不破坏原始备份
+            bd.paint()
+        bd.paint()
+        for direct in DIRECT: 
+            print(direct)
+            bd.save()
+            bd.paint()
+            for _ in bd.down_step(DIRECT[direct]):
+                bd.paint()
+            bd.load()        
+            
+    #Test fill
+    if False:
         print("-"*10, "Test fill")
         bd.save()
         bd.paint()
@@ -334,9 +421,26 @@ if __name__ == '__main__':
         bd.paint()
         bd.load()
         #bd.paint()
-
-    #Test swap
+        
+    #Test fill_step
     if True:
+        print("-"*10, "Test fill_step")
+        while bd.score(bd.boom()) == 0:
+            bd.reinit(clean_backup = False) #如果碰到没有可消除的情形，临时生成新数据，并且不破坏原始备份
+            bd.paint()
+        bd.paint()
+        for direct in DIRECT:   
+            print(direct)
+            bd.save()
+            bd.paint()
+            bd.down(DIRECT[direct])
+            bd.paint()            
+            for _ in bd.fill_step(DIRECT[direct]):
+                bd.paint()
+            bd.load()
+        
+    #Test swap
+    if False:
         print("-"*10, "Test swap")
         bd.save()
         bd.paint()
@@ -347,7 +451,7 @@ if __name__ == '__main__':
         #bd.paint()
 
     #Test hint
-    if True:
+    if False:
         print("-"*10, "Test hint")
         bd.save()
         bd.paint()
