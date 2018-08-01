@@ -307,6 +307,46 @@ class Board():
                 pair_hint = pair_hint_list[0][1]
         return pair_hint
 
+    #@performance
+    def absorb(self, color):
+        '''随机挑选一种颜色的色块，变成当前颜色
+        '''
+        row = self.__row
+        col = self.__col
+        
+        #随机一种别的颜色(1~5范围)
+        def other_color(c):
+            c_ch = c + np.random.randint(1,5)
+            if c_ch > 5:
+                c_ch -= 5
+            return c_ch
+            
+        color_rand = other_color(color)
+            
+        for i in range(row):
+            for j in range(col):
+                if self.__bd[i][j] == color_rand:
+                    self.__bd[i][j] = color
+
+    #@performance
+    def spread(self, color):
+        '''当前颜色变成其它随机颜色
+        '''
+        row = self.__row
+        col = self.__col
+
+        #随机一种别的颜色(1~5范围)
+        def other_color(c):
+            c_ch = c + np.random.randint(1,5)
+            if c_ch > 5:
+                c_ch -= 5
+            return c_ch
+                    
+        for i in range(row):
+            for j in range(col):
+                if self.__bd[i][j] == color:
+                    self.__bd[i][j] = other_color(color)
+
     def paint(self):
         '''绘制矩阵，初始用打印语句代替
         '''
@@ -392,7 +432,7 @@ if __name__ == '__main__':
             bd.load()
 
     #Test down_step
-    if True:
+    if False:
         print("-"*10, "Test down_step")
         while bd.score(bd.boom()) == 0:
             bd.reinit(clean_backup = False) #如果碰到没有可消除的情形，临时生成新数据，并且不破坏原始备份
@@ -423,7 +463,7 @@ if __name__ == '__main__':
         #bd.paint()
         
     #Test fill_step
-    if True:
+    if False:
         print("-"*10, "Test fill_step")
         while bd.score(bd.boom()) == 0:
             bd.reinit(clean_backup = False) #如果碰到没有可消除的情形，临时生成新数据，并且不破坏原始备份
@@ -467,3 +507,24 @@ if __name__ == '__main__':
         #bd.load() #hint函数里面已经load过了
         #bd.paint()
 
+    #Test absorb
+    if True:
+        print("-"*10, "Test absorb")
+        bd.save()
+        bd.paint()
+        color = np.random.randint(1,6)
+        print("    Color: %s" % COLOR[color])
+        bd.absorb(color)
+        bd.paint()
+        bd.load()
+        
+    #Test spread
+    if True:
+        print("-"*10, "Test spread")
+        bd.save()
+        bd.paint()
+        color = np.random.randint(1,6)
+        print("    Color: %s" % COLOR[color])
+        bd.spread(color)
+        bd.paint()
+        bd.load()        

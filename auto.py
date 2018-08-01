@@ -22,6 +22,13 @@ if __name__ == '__main__':
 
     round = 1
     score = [0, 0, 0, 0, 0]
+    score_c = [0, 0, 0, 0, 0]
+    bonus_5 = [0, 0, 0, 0, 0]
+    bonus_5_c = [0, 0, 0, 0, 0]
+    bonus_4 = [0, 0, 0, 0, 0]
+    bonus_4_c = [0, 0, 0, 0, 0]
+    bonus_3 = [0, 0, 0, 0, 0]
+    bonus_3_c = [0, 0, 0, 0, 0]
     while True:
         while True:
             cnt_boom = bd.boom()
@@ -29,7 +36,14 @@ if __name__ == '__main__':
                 break
             else:
                 for i, color in enumerate(COLOR):
-                    score[i] += bd.score(cnt_boom, color)
+                    score_c[i] = bd.score(cnt_boom, color)
+                    score[i] += score_c[i]
+                    bonus_5_c[i] = cnt_boom[0][i]
+                    bonus_5[i] += bonus_5_c[i]
+                    bonus_4_c[i] = cnt_boom[1][i]
+                    bonus_4[i] += bonus_4_c[i]
+                    bonus_3_c[i] = cnt_boom[2][i]
+                    bonus_3[i] += bonus_3_c[i]
             #bd.paint() 
             bd.down(DIRECT["DOWN"])
             #bd.paint()
@@ -39,6 +53,9 @@ if __name__ == '__main__':
         bd.paint()
         print("\n~~ SCORE~~")
         print(score)
+        print(bonus_5)
+        print(bonus_4)
+        print(bonus_3)
         #print("? 2 ? ", time.asctime())
         print("\n--------------------\nROUND %d" % round)
         pair = bd.hint(args.hint)
