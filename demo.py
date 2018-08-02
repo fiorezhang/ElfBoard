@@ -29,19 +29,19 @@ def clean_board(bd):
             break
         print("\n** DEAD **")
         bd.reinit()
-    bd.paint()
+    #bd.paint()
     return pair
 
 def parse(pair_input):
     pair = []
     ls = pair_input.split(',')
-    print(ls)
+    #print(ls)
     if len(ls) >= 4:
          pair.append(((int)(ls[0]), (int)(ls[1])))
          pair.append(((int)(ls[2]), (int)(ls[3])))
     else:
          pair = None
-    print(pair)
+    #print(pair)
     return pair
 
 
@@ -50,6 +50,7 @@ if __name__ == '__main__':
     args = get_args()
     bd = Board(args.row, args.col)
     clean_board(bd)
+    bd.paint()
 
     round = 0
     score = [0, 0, 0, 0, 0]
@@ -65,6 +66,7 @@ if __name__ == '__main__':
         round += 1
         print("\n--------------------\nROUND %d" % round)
         pair = clean_board(bd)
+        bd.paint()
         print("\n.. SWAP ..")
         while True:
             pair_input = input()
