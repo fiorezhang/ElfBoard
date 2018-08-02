@@ -15,12 +15,30 @@ def get_args():
     args = parser.parse_args()
     return args
 
+def clean_board(bd):
+    '''清理直到没有可以自动消除的块，但是有通过交换相邻块可以消除的块
+    '''
+    while True:
+        #此处的boom不计算分数，刚开局以及碰到死局重开时，需要做必要的清理
+        while bd.score(bd.boom()) > 0: #自动消除，填充，直到没有可自动消除的块
+            bd.down()
+            bd.fill()
+        #寻找是否有可以消除的块
+        pair = bd.hint(args.hint)
+        if not pair is None:
+            break
+        print("\n** DEAD **")
+        bd.reinit()
+    bd.paint()
+    return pair
+
 
 if __name__ == '__main__':
     args = get_args()
     bd = Board(args.row, args.col)
+    clean_board(bd)
 
-    round = 1
+    round = 0
     score = [0, 0, 0, 0, 0]
     score_c = [0, 0, 0, 0, 0]
     bonus_5 = [0, 0, 0, 0, 0]
@@ -30,6 +48,14 @@ if __name__ == '__main__':
     bonus_3 = [0, 0, 0, 0, 0]
     bonus_3_c = [0, 0, 0, 0, 0]
     while True:
+        print("\n--------------------\nROUND %d" % round)
+        round += 1
+        pair = clean_board(bd)
+        time.sleep(1)
+        bd.swap(pair[0], pair[1])   
+        print("\n-- MOVE --")
+        bd.paint()
+        
         while True:
             cnt_boom = bd.boom()
             if bd.score(cnt_boom) == 0:
@@ -57,15 +83,3 @@ if __name__ == '__main__':
         print(bonus_4)
         print(bonus_3)
         #print("? 2 ? ", time.asctime())
-        print("\n--------------------\nROUND %d" % round)
-        pair = bd.hint(args.hint)
-        if pair is None:
-            print("DEAD")
-            bd.reinit()
-            bd.paint()
-        #input("")
-        time.sleep(1)
-        bd.swap(pair[0], pair[1])   
-        print("\n-- MOVE --")
-        bd.paint()
-        round += 1
