@@ -12,16 +12,17 @@ from board import Board
 from setting import ELEMENT, COLOR, SCORE, DIRECT
 
 
-FPS = 1
+FPS = 10
 WINDOWWIDTH =640
 WINDOWHEIGHT = 480
-CELLSIZE = 60
+CELLSIZE = 80
 CELLSIZE_INNER = CELLSIZE/10
+CELLSIZE_SWAP = CELLSIZE/4
 CELLWIDTH = 6
 CELLHEIGHT = 6
 
-assert WINDOWWIDTH > CELLSIZE * CELLWIDTH #不会过宽
-assert WINDOWHEIGHT > CELLSIZE * CELLHEIGHT #不会过高
+assert WINDOWWIDTH >= CELLSIZE * CELLWIDTH #不会过宽
+assert WINDOWHEIGHT >= CELLSIZE * CELLHEIGHT #不会过高
 
 #RGB
 BLACK       = (  0,   0,   0)
@@ -73,7 +74,9 @@ def runGame():
         
         #画各个元素
         drawGrid() #画格子
-        drawBoard(next(get_bd))
+        para = next(get_bd)
+        drawBoard(para[0], para[1])
+
 
         #更新画面
         pygame.display.update()
@@ -121,12 +124,11 @@ def clean_board(bd):
             bd.down()
             bd.fill()
         #寻找是否有可以消除的块
-        pair = bd.hint(1)
+        pair = bd.hint(0) #1慢，优先消除更多分数；0快，随机消
         if not pair is None:
             break
         print("\n** DEAD **")
         bd.reinit()
-    #bd.paint()
     return pair
 
 def parse(pair_input):
@@ -142,10 +144,10 @@ def parse(pair_input):
     return pair
 
 def get_board():
-    bd = Board(CELLWIDTH, CELLHEIGHT)
+    bd = Board(CELLHEIGHT, CELLWIDTH)
     clean_board(bd)
-    yield bd.paint()
-    time.sleep(1)
+    yield bd.paint(), None
+    #time.sleep(1)
     
     #初始化轮次，分数等
     round = 0
@@ -163,12 +165,13 @@ def get_board():
         round += 1
         print("\n--------------------\nROUND %d" % round)
         pair = clean_board(bd)
-        yield bd.paint()
+        yield bd.paint(), pair
         time.sleep(1)
         
         print("\n.. SWAP ..")
         bd.swap(pair[0], pair[1]) #先强制用推荐值
-
+        yield bd.paint(), pair
+        time.sleep(1)
         
         while False: #TODO:先关掉
             pair_input = input()
@@ -187,12 +190,12 @@ def get_board():
                         bd.swap(pair[0], pair[1])
                         break
                 bd.load()
-                #bd.paint()
+                #bd.paint(), None
                 print("\nformat as'0,0,0,1', if ignore then auto")
 
         print("\n-- MOVE --")
-        yield bd.paint()
-        time.sleep(1)
+        yield bd.paint(), None
+        #time.sleep(1)
                 
         while True:
             cnt_boom = bd.boom()
@@ -208,16 +211,18 @@ def get_board():
                     bonus_4[i] += bonus_4_c[i]
                     bonus_3_c[i] = cnt_boom[2][i]
                     bonus_3[i] += bonus_3_c[i]
-            yield bd.paint()
+            yield bd.paint(), None
             time.sleep(1)
-            bd.down(DIRECT["DOWN"])
-            yield bd.paint()
+            for _ in bd.down_step(DIRECT["DOWN"]):
+                yield bd.paint(), None
             time.sleep(1)
-            bd.fill()
-            yield bd.paint()
+            for _ in bd.fill_step(DIRECT["DOWN"]):
+                yield bd.paint(), None
+            #bd.fill()
+            yield bd.paint(), None
             time.sleep(1)
         print("\n== DOWN ==")
-        yield bd.paint()
+        yield bd.paint(), None
         time.sleep(1)
         print("\n~~ SCORE~~")
         print(score)
@@ -234,20 +239,28 @@ def drawGrid():
     for y in range(coordinate[1], coordinate[3]+CELLSIZE, CELLSIZE):
         pygame.draw.line(DISPLAYSURF, WHITE, (coordinate[0], y), (coordinate[2], y))
 
-def drawBoard(bd):
+def drawBoard(bd, pair=None):
     COLOR_DRAW = {0:BLACK, 1:GREY, 2:GREEN, 3:YELLOW, 4:BLUE, 5:RED}
     COLOR_INNER_DRAW = {0:BLACK, 1:LIGHTGREY, 2:LIGHTGREEN, 3:LIGHTYELLOW, 4:LIGHTBLUE, 5:LIGHTRED}
 
+    print(bd)
+    #print(pair)
+
     coordinate = (0, WINDOWHEIGHT-CELLSIZE*CELLHEIGHT, CELLSIZE*CELLWIDTH, WINDOWHEIGHT) #左上右下边界坐标
     row, col = bd.shape[0], bd.shape[1]
+
     for i in range(row):
         for j in range(col):
-            CellRect = pygame.Rect(coordinate[0]+j*CELLSIZE, coordinate[1]+i*CELLSIZE, CELLSIZE, CELLSIZE)
+            CellRect = pygame.Rect(coordinate[0]+j*CELLSIZE+1, coordinate[1]+i*CELLSIZE+1, CELLSIZE-2, CELLSIZE-2)
             pygame.draw.rect(DISPLAYSURF, COLOR_DRAW[bd[i][j]], CellRect)
             CellInnerRect = pygame.Rect(coordinate[0]+j*CELLSIZE+CELLSIZE_INNER, coordinate[1]+i*CELLSIZE+CELLSIZE_INNER, CELLSIZE-CELLSIZE_INNER*2, CELLSIZE-CELLSIZE_INNER*2)
             pygame.draw.rect(DISPLAYSURF, COLOR_INNER_DRAW[bd[i][j]], CellInnerRect)
-
-    
+            
+    if pair is not None:
+        for cellSwap in pair:
+            CellSwapRect = pygame.Rect(coordinate[0]+cellSwap[1]*CELLSIZE+CELLSIZE_SWAP, coordinate[1]+cellSwap[0]*CELLSIZE+CELLSIZE_SWAP, CELLSIZE-CELLSIZE_SWAP*2, CELLSIZE-CELLSIZE_SWAP*2)
+            pygame.draw.rect(DISPLAYSURF, WHITE, CellSwapRect)
+        
 
 if __name__ == '__main__':
     main()
