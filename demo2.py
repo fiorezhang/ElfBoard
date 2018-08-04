@@ -64,6 +64,7 @@ def main():
 def runGame():
     
     get_bd = get_board()
+    score_str = ""
     while True:
         direction = check_events()
         print(direction)
@@ -75,7 +76,9 @@ def runGame():
         #画各个元素
         drawGrid() #画格子
         para = next(get_bd)
-        drawBoard(para[0], para[1])
+        if para[2] is not None:
+            score_str = para[2]
+        drawBoard(para[0], para[1], score_str)
 
 
         #更新画面
@@ -146,7 +149,7 @@ def parse(pair_input):
 def get_board():
     bd = Board(CELLHEIGHT, CELLWIDTH)
     clean_board(bd)
-    yield bd.paint(), None
+    yield bd.paint(), None, None
     #time.sleep(1)
     
     #初始化轮次，分数等
@@ -165,12 +168,12 @@ def get_board():
         round += 1
         print("\n--------------------\nROUND %d" % round)
         pair = clean_board(bd)
-        yield bd.paint(), pair
+        yield bd.paint(), pair, None
         time.sleep(1)
         
         print("\n.. SWAP ..")
         bd.swap(pair[0], pair[1]) #先强制用推荐值
-        yield bd.paint(), pair
+        yield bd.paint(), pair, None
         time.sleep(1)
         
         while False: #TODO:先关掉
@@ -194,7 +197,7 @@ def get_board():
                 print("\nformat as'0,0,0,1', if ignore then auto")
 
         print("\n-- MOVE --")
-        yield bd.paint(), None
+        yield bd.paint(), None, None
         #time.sleep(1)
                 
         while True:
@@ -211,18 +214,19 @@ def get_board():
                     bonus_4[i] += bonus_4_c[i]
                     bonus_3_c[i] = cnt_boom[2][i]
                     bonus_3[i] += bonus_3_c[i]
-            yield bd.paint(), None
+            yield bd.paint(), None, None
             time.sleep(1)
             for _ in bd.down_step(DIRECT["DOWN"]):
-                yield bd.paint(), None
+                yield bd.paint(), None, None
             time.sleep(1)
             for _ in bd.fill_step(DIRECT["DOWN"]):
-                yield bd.paint(), None
+                yield bd.paint(), None, None
             #bd.fill()
-            yield bd.paint(), None
+            yield bd.paint(), None, None
             time.sleep(1)
         print("\n== DOWN ==")
-        yield bd.paint(), None
+        score_str = ','.join(str(i) for i in score)
+        yield bd.paint(), None, score_str
         time.sleep(1)
         print("\n~~ SCORE~~")
         print(score)
@@ -239,7 +243,7 @@ def drawGrid():
     for y in range(coordinate[1], coordinate[3]+CELLSIZE, CELLSIZE):
         pygame.draw.line(DISPLAYSURF, WHITE, (coordinate[0], y), (coordinate[2], y))
 
-def drawBoard(bd, pair=None):
+def drawBoard(bd, pair=None, score=""):
     COLOR_DRAW = {0:BLACK, 1:GREY, 2:GREEN, 3:YELLOW, 4:BLUE, 5:RED}
     COLOR_INNER_DRAW = {0:BLACK, 1:LIGHTGREY, 2:LIGHTGREEN, 3:LIGHTYELLOW, 4:LIGHTBLUE, 5:LIGHTRED}
 
@@ -260,6 +264,12 @@ def drawBoard(bd, pair=None):
         for cellSwap in pair:
             CellSwapRect = pygame.Rect(coordinate[0]+cellSwap[1]*CELLSIZE+CELLSIZE_SWAP, coordinate[1]+cellSwap[0]*CELLSIZE+CELLSIZE_SWAP, CELLSIZE-CELLSIZE_SWAP*2, CELLSIZE-CELLSIZE_SWAP*2)
             pygame.draw.rect(DISPLAYSURF, WHITE, CellSwapRect)
+            
+    BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
+    textSurfaceObj = BASICFONT.render(score, True, GREEN, BLUE)
+    textRectObj = textSurfaceObj.get_rect()
+    textRectObj.center = (480+100, 150)
+    DISPLAYSURF.blit(textSurfaceObj, textRectObj)
         
 
 if __name__ == '__main__':
