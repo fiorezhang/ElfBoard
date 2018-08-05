@@ -1,4 +1,4 @@
-#coding: utf-8
+﻿#coding: utf-8
 
 import numpy as np
 import argparse
@@ -12,14 +12,14 @@ from board import Board
 from setting import ELEMENT, COLOR, SCORE, DIRECT
 
 
-FPS = 10
+FPS = 15
 WINDOWWIDTH =640
 WINDOWHEIGHT = 480
-CELLSIZE = 80
-CELLSIZE_INNER = CELLSIZE/10
-CELLSIZE_SWAP = CELLSIZE/4
-CELLWIDTH = 6
-CELLHEIGHT = 6
+CELLSIZE = 96
+CELLSIZE_INNER = CELLSIZE//8
+CELLSIZE_SWAP = CELLSIZE//4
+CELLWIDTH = 5
+CELLHEIGHT = 5
 
 assert WINDOWWIDTH >= CELLSIZE * CELLWIDTH #不会过宽
 assert WINDOWHEIGHT >= CELLSIZE * CELLHEIGHT #不会过高
@@ -64,7 +64,7 @@ def main():
 def runGame():
     
     get_bd = get_board()
-    score_str = ""
+    score = [0,0,0,0,0]
     while True:
         direction = check_events()
         print(direction)
@@ -77,8 +77,8 @@ def runGame():
         drawGrid() #画格子
         para = next(get_bd)
         if para[2] is not None:
-            score_str = para[2]
-        drawBoard(para[0], para[1], score_str)
+            score = para[2]
+        drawBoard(para[0], para[1], score)
 
 
         #更新画面
@@ -127,7 +127,7 @@ def clean_board(bd):
             bd.down()
             bd.fill()
         #寻找是否有可以消除的块
-        pair = bd.hint(0) #1慢，优先消除更多分数；0快，随机消
+        pair = bd.hint(1) #1慢，优先消除更多分数；0快，随机消
         if not pair is None:
             break
         print("\n** DEAD **")
@@ -215,18 +215,19 @@ def get_board():
                     bonus_3_c[i] = cnt_boom[2][i]
                     bonus_3[i] += bonus_3_c[i]
             yield bd.paint(), None, None
-            time.sleep(1)
+            time.sleep(0.2)
             for _ in bd.down_step(DIRECT["DOWN"]):
                 yield bd.paint(), None, None
-            time.sleep(1)
+            #time.sleep(0.2)
             for _ in bd.fill_step(DIRECT["DOWN"]):
                 yield bd.paint(), None, None
             #bd.fill()
             yield bd.paint(), None, None
-            time.sleep(1)
+            time.sleep(0.2)
         print("\n== DOWN ==")
-        score_str = ','.join(str(i) for i in score)
-        yield bd.paint(), None, score_str
+        #score_str = ' ,'.join(str(i) for i in score)
+        #yield bd.paint(), None, score_str
+        yield bd.paint(), None, score
         time.sleep(1)
         print("\n~~ SCORE~~")
         print(score)
@@ -235,7 +236,7 @@ def get_board():
         print(bonus_3)
         #------------------------------------------------------------------------------------------------------------
                 
-
+#======================================================================================================================
 def drawGrid():
     coordinate = (0, WINDOWHEIGHT-CELLSIZE*CELLHEIGHT, CELLSIZE*CELLWIDTH, WINDOWHEIGHT) #左上右下边界坐标
     for x in range(coordinate[0], coordinate[2]+CELLSIZE, CELLSIZE):
@@ -255,7 +256,7 @@ def drawBoard(bd, pair=None, score=""):
 
     for i in range(row):
         for j in range(col):
-            CellRect = pygame.Rect(coordinate[0]+j*CELLSIZE+1, coordinate[1]+i*CELLSIZE+1, CELLSIZE-2, CELLSIZE-2)
+            CellRect = pygame.Rect(coordinate[0]+j*CELLSIZE+4, coordinate[1]+i*CELLSIZE+4, CELLSIZE-4*2, CELLSIZE-4*2)
             pygame.draw.rect(DISPLAYSURF, COLOR_DRAW[bd[i][j]], CellRect)
             CellInnerRect = pygame.Rect(coordinate[0]+j*CELLSIZE+CELLSIZE_INNER, coordinate[1]+i*CELLSIZE+CELLSIZE_INNER, CELLSIZE-CELLSIZE_INNER*2, CELLSIZE-CELLSIZE_INNER*2)
             pygame.draw.rect(DISPLAYSURF, COLOR_INNER_DRAW[bd[i][j]], CellInnerRect)
@@ -265,11 +266,13 @@ def drawBoard(bd, pair=None, score=""):
             CellSwapRect = pygame.Rect(coordinate[0]+cellSwap[1]*CELLSIZE+CELLSIZE_SWAP, coordinate[1]+cellSwap[0]*CELLSIZE+CELLSIZE_SWAP, CELLSIZE-CELLSIZE_SWAP*2, CELLSIZE-CELLSIZE_SWAP*2)
             pygame.draw.rect(DISPLAYSURF, WHITE, CellSwapRect)
             
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
-    textSurfaceObj = BASICFONT.render(score, True, GREEN, BLUE)
-    textRectObj = textSurfaceObj.get_rect()
-    textRectObj.center = (480+100, 150)
-    DISPLAYSURF.blit(textSurfaceObj, textRectObj)
+    FONT_SIZE_SCORE = 60
+    for i, sc in enumerate(score):
+        BASICFONT = pygame.font.Font('freesansbold.ttf', FONT_SIZE_SCORE)
+        textSurfaceObj = BASICFONT.render(str(sc), True, COLOR_INNER_DRAW[i+1], BLACK)
+        textRectObj = textSurfaceObj.get_rect()
+        textRectObj.topright = (WINDOWWIDTH, i * FONT_SIZE_SCORE)
+        DISPLAYSURF.blit(textSurfaceObj, textRectObj)
         
 
 if __name__ == '__main__':
