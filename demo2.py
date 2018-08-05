@@ -161,7 +161,7 @@ def get_board():
     bd = Board(CELLHEIGHT, CELLWIDTH)
     clean_board(bd)
     yield bd.paint(), None, None, None
-    #time.sleep(1)
+    #time.sleep(0.6)
     
     #初始化轮次，分数等
     round = 0
@@ -180,12 +180,12 @@ def get_board():
         print("\n--------------------\nROUND %d" % round)
         pair = clean_board(bd)
         yield bd.paint(), pair, None, round
-        time.sleep(1)
+        time.sleep(0.6)
         
         print("\n.. SWAP ..")
         bd.swap(pair[0], pair[1]) #先强制用推荐值
         yield bd.paint(), pair, None, None
-        time.sleep(1)
+        time.sleep(0.6)
         
         while False: #TODO:先关掉
             pair_input = input()
@@ -238,7 +238,7 @@ def get_board():
         print("\n== DOWN ==")
         #score_str = ' ,'.join(str(i) for i in score)
         yield bd.paint(), None, score, None
-        time.sleep(1)
+        #time.sleep(1)
         print("\n~~ SCORE~~")
         print(score)
         print(bonus_5)
