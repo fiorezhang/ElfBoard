@@ -270,14 +270,14 @@ def drawBoard(bd, pair=None, score=None, round=0):
 
     for i in range(row):
         for j in range(col):
-            CellRect = pygame.Rect(coordinate[0]+j*CELLSIZE+4, coordinate[1]+i*CELLSIZE+4, CELLSIZE-4*2, CELLSIZE-4*2)
+            CellRect = pygame.Rect(coordinate[0]+j*CELLSIZE+5, coordinate[1]+i*CELLSIZE+5, CELLSIZE-5*2+1, CELLSIZE-5*2+1)
             pygame.draw.rect(DISPLAYSURF, COLOR_DRAW[bd[i][j]], CellRect)
-            CellInnerRect = pygame.Rect(coordinate[0]+j*CELLSIZE+CELLSIZE_INNER, coordinate[1]+i*CELLSIZE+CELLSIZE_INNER, CELLSIZE-CELLSIZE_INNER*2, CELLSIZE-CELLSIZE_INNER*2)
+            CellInnerRect = pygame.Rect(coordinate[0]+j*CELLSIZE+CELLSIZE_INNER, coordinate[1]+i*CELLSIZE+CELLSIZE_INNER, CELLSIZE-CELLSIZE_INNER*2+1, CELLSIZE-CELLSIZE_INNER*2+1)
             pygame.draw.rect(DISPLAYSURF, COLOR_INNER_DRAW[bd[i][j]], CellInnerRect)
             
     if pair is not None:
         for cellSwap in pair:
-            CellSwapRect = pygame.Rect(coordinate[0]+cellSwap[1]*CELLSIZE+CELLSIZE_SWAP, coordinate[1]+cellSwap[0]*CELLSIZE+CELLSIZE_SWAP, CELLSIZE-CELLSIZE_SWAP*2, CELLSIZE-CELLSIZE_SWAP*2)
+            CellSwapRect = pygame.Rect(coordinate[0]+cellSwap[1]*CELLSIZE+CELLSIZE_SWAP, coordinate[1]+cellSwap[0]*CELLSIZE+CELLSIZE_SWAP, CELLSIZE-CELLSIZE_SWAP*2+1, CELLSIZE-CELLSIZE_SWAP*2+1)
             pygame.draw.rect(DISPLAYSURF, WHITE, CellSwapRect)
             
     FONT_SIZE_SCORE = 48
