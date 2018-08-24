@@ -57,6 +57,7 @@ def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
     
     pygame.init()
+    pygame.mixer.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
@@ -69,6 +70,9 @@ def main():
 
 #游戏主体
 def runGame():
+    pygame.mixer.music.load("resource/ending.at3.mp3")
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play(-1, 0.0)
     
     get_bd = get_board()
     score = [0,0,0,0,0]
@@ -174,6 +178,10 @@ def get_board():
     bonus_3 = [0, 0, 0, 0, 0]
     bonus_3_c = [0, 0, 0, 0, 0]
 
+    sound_boom_5 = pygame.mixer.Sound("resource/discovery.wav")
+    sound_boom_4 = pygame.mixer.Sound("resource/notification.wav")
+    sound_boom_3 = pygame.mixer.Sound("resource/diplomatic_notification_01.wav")
+
     while True:    
         #------------------------------------------------------------------------------------------------------------
         round += 1
@@ -225,6 +233,12 @@ def get_board():
                     bonus_4[i] += bonus_4_c[i]
                     bonus_3_c[i] = cnt_boom[2][i]
                     bonus_3[i] += bonus_3_c[i]
+            if sum(bonus_5_c) > 0:
+                sound_boom_5.play()
+            elif sum(bonus_4_c) > 0:
+                sound_boom_4.play()
+            else:
+                sound_boom_3.play()
             yield bd.paint(), None, None, None
             time.sleep(0.2)
             for _ in bd.down_step(DIRECT["DOWN"]):
